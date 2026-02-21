@@ -1,6 +1,9 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlmodel import SQLModel
 from app.db.models import Riders, Drivers, Vehicle, Rides, Fares, Payment
+
+from fastapi import Depends
+from typing import Annotated
 
 url = "sqlite+aiosqlite:///./ridehive.db"
 
@@ -21,3 +24,5 @@ async def create_tables():
 async def get_session():
     async with async_session() as session:
         yield session
+
+sessionDep = Annotated[AsyncSession, Depends(get_session)]
