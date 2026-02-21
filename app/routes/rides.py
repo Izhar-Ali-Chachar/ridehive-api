@@ -50,4 +50,46 @@ async def request_ride(
         vehicle_id = vehicle_id,
         status = RidesStatus.REQUESTED
     )
+
+    session.add(rides)
+    await session.commit()
+    await session.refresh(rides)
+
+    return rides
     
+@router.post("{ride_id}/accepted")
+async def accepted_ride(ride_id: int, driver_id: int, session: sessionDep):
+    ride = await session.get(Rides, ride_id)
+    if not ride:
+        raise HTTPException(
+            status_code=400,
+            detail="Ride not found"
+        )
+    
+    if ride.status != RidesStatus.REQUESTED:
+        raise HTTPException(
+            status_code=400,
+            detail="Ride cannot be accepted. Current status: {ride.status}"
+        )
+    
+    driver = await session.get(Drivers, driver_id)
+    if not driver:
+        raise HTTPException(
+            status_code=400,
+            detail="Driver not found"
+        )
+    
+    if driver.status != DriverStatus.ONLINE:
+        raise HTTPException(
+            status_code=400,
+            detail="Driver is not available"
+        )
+    
+    ride.status == RidesStatus.ACCEPTED
+
+    driver.status == DriverStatus.ON_TRIP
+
+    session.add(ride)
+    session.add(driver)
+    await session.commit()
+    await session.refresh(ride)
