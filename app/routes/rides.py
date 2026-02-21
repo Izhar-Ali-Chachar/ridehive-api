@@ -9,7 +9,7 @@ from app.db.models import (
 
 from sqlmodel import select
 
-router = APIRouter(prefix="rides")
+router = APIRouter(prefix="/rides")
 
 @router.post("/request")
 async def request_ride(

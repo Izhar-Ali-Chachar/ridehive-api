@@ -8,3 +8,4 @@ pyjwt
 sqlmodel
 passlib
 python-multipart
+aiosqlite
