@@ -50,3 +50,17 @@ def event_ride_requested(
             "estimated_fare": estimated_fare
         }
     )
+
+def event_ride_cancelled(
+        ride_id: int,
+        rider_id: int,
+        reason: str
+):
+    publish_event(
+        "ride.cancelled",
+        {
+            "ride_id": ride_id,
+            "rider_id": rider_id,
+            "reason": reason
+        }
+    )
