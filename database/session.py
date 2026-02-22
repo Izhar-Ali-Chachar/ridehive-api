@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlmodel import SQLModel
-from .models import Riders, Rides, Payment, Drivers, Fares
+from database.models import Riders, Rides, Payment, Drivers, Fares
 
 from fastapi import Depends
 from typing import Annotated
