@@ -9,3 +9,4 @@ sqlmodel
 passlib
 python-multipart
 aiosqlite
+redis
