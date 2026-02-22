@@ -12,7 +12,7 @@ class RiderCreate(BaseModel):
     payment_method: RiderPaymentMethod = Field(default=RiderPaymentMethod.CASH)
 
 class RiderUpdate(BaseModel):
-    payment_method: Optional[RiderPaymentMethod] = None
+    payment_method: Optional[RiderPaymentMethod] = Field(default=None)
 
 class RideRequest(BaseModel):
     rider_id: int

@@ -28,3 +28,25 @@ def event_rider_registered(rider_id: int, payment_method: str):
             payment_method: payment_method
         }
     )
+
+def event_ride_requested(
+    ride_id: int,
+    rider_id: int,
+    pickup_lat: float,
+    pickup_lng: float,
+    dropoff_lat: float,
+    dropoff_lng: float,
+    estimated_fare: float
+):
+    publish_event(
+        "ride.requested",
+        {
+            "ride_id": ride_id,
+            "rider_id": rider_id,
+            "pickup_lat": pickup_lat,
+            "pickup_lng": pickup_lng,
+            "dropoff_lat": dropoff_lat,
+            "dropoff_lng": dropoff_lng,
+            "estimated_fare": estimated_fare
+        }
+    )

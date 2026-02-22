@@ -7,6 +7,7 @@ from datetime import datetime, UTC
 class RiderPaymentMethod(str, Enum):
     CASH = "cash"
     CARD = "card"
+    WALLET = "wallet"
 
 
 class DriverStatus(str, Enum):
@@ -18,7 +19,6 @@ class DriverStatus(str, Enum):
 class RidesStatus(str, Enum):
     REQUESTED = "requested"
     ACCEPTED = "accepted"
-    ARRIVED = "arrived"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled" 
