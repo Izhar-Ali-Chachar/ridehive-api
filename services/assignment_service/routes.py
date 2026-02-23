@@ -1,7 +1,4 @@
-# services/assignment_service/routes.py
-
 from fastapi import APIRouter, HTTPException, Depends
-from sqlmodel import Session
 from database.session import sessionDep
 from database.models import Rides, RidesStatus
 from services.assignment_service.models import (

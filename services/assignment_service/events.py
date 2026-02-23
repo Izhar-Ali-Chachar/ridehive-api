@@ -19,11 +19,6 @@ def publish_event(event_name: str, data: dict):
 
 
 async def handle_ride_requested(data: dict):
-    """
-    Listens to ride.requested event
-    Calls shared service logic
-    Fires result event
-    """
     ride_id = data["ride_id"]
     rider_id = data["rider_id"]
     pickup_lat = data["pickup_lat"]
@@ -31,7 +26,6 @@ async def handle_ride_requested(data: dict):
 
     print(f"🚗 Assigning driver for ride {ride_id}...")
 
-    # use shared session
     session = get_session()
 
     try:
