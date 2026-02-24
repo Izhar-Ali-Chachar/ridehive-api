@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 import json
 from datetime import datetime
 from database.session import get_session
@@ -69,16 +69,16 @@ def handle_ride_completed(data: dict):
         session.close()
 
 
-def start_payment_consumer():
+async def start_payment_consumer():
     """
     Listen to ride.completed events
     """
     pubsub = r.pubsub()
-    pubsub.subscribe("ride.completed")
+    await pubsub.subscribe("ride.completed")
 
     print("💳 Payment consumer started...")
 
-    for message in pubsub.listen():
+    async for message in pubsub.listen():
         if message["type"] == "message":
             event = message["channel"]
             data = json.loads(message["data"])

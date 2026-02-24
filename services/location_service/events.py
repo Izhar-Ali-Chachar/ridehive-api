@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 import json
 from datetime import datetime
 
@@ -44,15 +44,15 @@ def event_location_updated(
     )
 
 
-def start_location_consumer():
+async def start_location_consumer():
     pubsub = r.pubsub()
-    pubsub.subscribe(
+    await pubsub.subscribe(
         "driver.status_changed",
         "ride.started",
         "ride.completed"
     )
 
-    for message in pubsub.listen():
+    async for message in pubsub.listen():
         if message["type"] == "message":
             event_name = message["channel"]
             data = json.loads(message["data"])

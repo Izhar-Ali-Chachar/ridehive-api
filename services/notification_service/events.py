@@ -1,7 +1,7 @@
-import redis
+import redis.asyncio as redis
 import json
 from datetime import datetime
-from database.session import get_session
+from database.session import async_session
 from services.notification_service.service import send_notification
 from services.notification_service.models import (
     NotificationType,
@@ -165,11 +165,11 @@ async def handle_ride_cancelled(data: dict, session):
         ride_id=data["ride_id"]
     )
 
-def start_notification_consumer():
+async def start_notification_consumer():
     pubsub = r.pubsub()
 
     # subscribe to every event
-    pubsub.subscribe(
+    await pubsub.subscribe(
         "rider.registered",
         "driver.registered",
         "ride.requested",
@@ -184,12 +184,10 @@ def start_notification_consumer():
 
     print("🔔 Notification consumer started...")
 
-    for message in pubsub.listen():
+    async for message in pubsub.listen():
         if message["type"] == "message":
             event = message["channel"]
             data = json.loads(message["data"])
-
-            session = get_session()
 
             try:
                 # route to correct handler
@@ -208,7 +206,9 @@ def start_notification_consumer():
 
                 handler = handlers.get(event)
                 if handler:
-                    handler(data, session)
+                    async with async_session() as session:
+                        await handler(data, session)
+                        await session.commit()
                 else:
                     print(f"No handler for event: {event}")
 
@@ -216,4 +216,4 @@ def start_notification_consumer():
                 print(f"Notification error: {e}")
 
             finally:
-                session.close()
+                await session.close()

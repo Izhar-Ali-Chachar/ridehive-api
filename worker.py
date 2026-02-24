@@ -1,22 +1,24 @@
+import asyncio
 import threading
-from services.assignment_service.events import start_assignment_consumer
-from services.location_service.events import start_location_consumer
-from services.payment_service.events import start_payment_consumer
-from services.notification_service.events import start_notification_consumer
+
+
+async def run_all_consumers():
+    """Run all consumers concurrently"""
+    from services.notification_service.events import start_notification_consumer
+    from services.assignment_service.events import start_assignment_consumer
+    from services.location_service.events import start_location_consumer
+    from services.payment_service.events import start_payment_consumer
+
+    print("🚀 Starting all workers...")
+
+    # ✅ run all consumers concurrently
+    await asyncio.gather(
+        start_notification_consumer(),
+        start_assignment_consumer(),
+        start_location_consumer(),
+        start_payment_consumer(),
+    )
+
 
 if __name__ == "__main__":
-
-    threads = [
-        threading.Thread(target=start_assignment_consumer),
-        threading.Thread(target=start_location_consumer),
-        threading.Thread(target=start_payment_consumer),
-        threading.Thread(target=start_notification_consumer)
-    ]
-
-    for thread in threads:
-        thread.start()
-
-    print("All workers running...")
-
-    for thread in threads:
-        thread.join()
+    asyncio.run(run_all_consumers())

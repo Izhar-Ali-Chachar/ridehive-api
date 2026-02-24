@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 import json
 from datetime import datetime
 from database.session import get_session
@@ -63,11 +63,11 @@ async def start_assignment_consumer():
     Listen to ride.requested events
     """
     pubsub = r.pubsub()
-    pubsub.subscribe("ride.requested")
+    await pubsub.subscribe("ride.requested")
 
     print("🎯 Assignment consumer started...")
 
-    for message in pubsub.listen():
+    async for message in pubsub.listen():
         if message["type"] == "message":
             event = message["channel"]
             data = json.loads(message["data"])
