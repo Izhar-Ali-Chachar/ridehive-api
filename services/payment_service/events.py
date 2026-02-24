@@ -1,5 +1,3 @@
-# services/payment_service/events.py
-
 import redis
 import json
 from datetime import datetime
