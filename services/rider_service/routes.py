@@ -23,7 +23,7 @@ from database.models import (
     Fares
 )
 
-router = APIRouter(prefix="/rider")
+router = APIRouter(prefix="/rider", tags=["Rider"])
 
 @router.post("/register")
 async def register_rider(rider: RiderCreate, session: sessionDep):
@@ -43,7 +43,7 @@ async def register_rider(rider: RiderCreate, session: sessionDep):
 
     event_rider_registered(
         db_rider.id,
-        db_rider.payment_method
+        db_rider.payment_method.value
     )
 
     return db_rider

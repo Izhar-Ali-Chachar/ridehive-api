@@ -23,6 +23,10 @@ async def create_tables():
 
 async def get_session():
     async with async_session() as session:
-        yield session
-
+        try:
+            yield session
+            await session.commit() 
+        except Exception:
+            await session.rollback()
+            raise
 sessionDep = Annotated[AsyncSession, Depends(get_session)]

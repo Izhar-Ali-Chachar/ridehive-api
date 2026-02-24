@@ -13,9 +13,9 @@ r = redis.Redis(
 
 def publish_event(event_name: str, data: dict):
     """Fire event to Redis"""
-    data["timestamp"] = str(datetime.now())
+    data["timestamp"] = datetime.now().isoformat()
     r.publish(event_name, json.dumps(data))
-    print(f"✅ Event fired: {event_name}")
+    print(f"Event fired: {event_name}")
 
 
 def handle_ride_completed(data: dict):
@@ -27,7 +27,7 @@ def handle_ride_completed(data: dict):
     rider_id = data["rider_id"]
     driver_id = data["driver_id"]
 
-    print(f"💳 Processing payment for ride {ride_id}...")
+    print(f"Processing payment for ride {ride_id}...")
 
     session = get_session()
 

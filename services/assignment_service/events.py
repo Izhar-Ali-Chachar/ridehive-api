@@ -12,10 +12,10 @@ r = redis.Redis(
 
 
 def publish_event(event_name: str, data: dict):
-    data["timestamp"] = str(datetime.now())
+    data["timestamp"] = datetime.now().isoformat()
 
     r.publish(event_name, json.dumps(data))
-    print(f"✅ Event fired: {event_name}")
+    print(f"Event fired: {event_name}")
 
 
 async def handle_ride_requested(data: dict):
@@ -24,7 +24,7 @@ async def handle_ride_requested(data: dict):
     pickup_lat = data["pickup_lat"]
     pickup_lng = data["pickup_lng"]
 
-    print(f"🚗 Assigning driver for ride {ride_id}...")
+    print(f"Assigning driver for ride {ride_id}...")
 
     session = get_session()
 

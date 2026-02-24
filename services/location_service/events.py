@@ -16,7 +16,7 @@ r = redis.Redis(
 )
 
 def publish_event(event_name: str, data: dict):
-    data["timestamp"] = datetime.now()
+    data["timestamp"] = datetime.now().isoformat()
 
     payload = json.dumps(data)
 

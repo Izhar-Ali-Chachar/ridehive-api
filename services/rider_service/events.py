@@ -4,13 +4,13 @@ import json
 from datetime import datetime
 
 r = redis.Redis(
-    host = "local",
+    host = "localhost",
     port = 6379,
     decode_responses = True
 )
 
 def publish_event(event_name: str, data: dict):
-    data["timestep"] = datetime.now()
+    data["timestamp"] = datetime.now().isoformat()
 
     payload = json.dumps(data)
 
@@ -24,8 +24,8 @@ def event_rider_registered(rider_id: int, payment_method: str):
     publish_event(
         "rider.registered",
         {
-            rider_id: rider_id,
-            payment_method: payment_method
+            "rider_id": rider_id,
+            "payment_method": payment_method
         }
     )
 

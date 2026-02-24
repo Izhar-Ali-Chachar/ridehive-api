@@ -30,7 +30,10 @@ from services.driver_service.events import (
     event_ride_completed
 )
 
-router = APIRouter(prefix="/driver")
+router = APIRouter(
+    prefix="/driver",
+    tags=["Driver"]
+)
 
 
 @router.post("/register", response_model = DriverRespone)

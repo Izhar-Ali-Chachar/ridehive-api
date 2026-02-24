@@ -110,7 +110,7 @@ async def send_notification(
 
     # log it
     print(
-        f"🔔 Notification sent → "
+        f"Notification sent → "
         f"{recipient_type} {recipient_id}: "
         f"{title}"
     )
