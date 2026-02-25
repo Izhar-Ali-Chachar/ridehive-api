@@ -48,7 +48,7 @@ async def register_rider(rider: RiderCreate, session: sessionDep):
 
     return db_rider
 
-@router.get("{rider_id}", response_model=RiderResponse)
+@router.get("/{rider_id}", response_model=RiderResponse)
 async def get_rider(rider_id: int, session: sessionDep):
     rider = await session.get(Riders, rider_id)
 
@@ -60,7 +60,7 @@ async def get_rider(rider_id: int, session: sessionDep):
     
     return rider
 
-@router.patch("{rider_id}", response_model=RiderResponse)
+@router.patch("/{rider_id}", response_model=RiderResponse)
 async def update_rider(rider_id: int, rider_update: RiderUpdate, session: sessionDep):
     rider = await session.get(Riders, rider_id)
 
@@ -170,7 +170,7 @@ async def ride_request(
         dropoff_lng=ride_data.dropoff_lng
     )
 
-@router.get("{ride_id}/status", response_model = RideRequestResponse)
+@router.get("/{ride_id}/status", response_model = RideRequestResponse)
 async def get_ride_status(
     ride_id: int,
     session: sessionDep
@@ -190,7 +190,7 @@ async def get_ride_status(
         "end_time": ride.end_time
     }
 
-@router.patch("{ride_id}/cancel")
+@router.patch("/{ride_id}/cancel")
 async def ride_cancel(
     session: sessionDep,
     ride_id: int,
@@ -247,7 +247,7 @@ async def ride_cancel(
         "status": ride.status
     }
 
-@router.get("{rider_id}/rides")
+@router.get("/{rider_id}/rides")
 async def get_rider_rides(
     rider_id: int,
     session: sessionDep

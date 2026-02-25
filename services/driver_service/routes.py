@@ -15,11 +15,12 @@ from database.models import (
 
 from services.driver_service.models import (
     DriverCreate, 
-    DriverRespone, 
+    DriverResponse, 
     DriverStatusUpdate, 
     RideAcceptResponse,
     RideStartResponse,
-    RideCompleteResponse
+    RideCompleteResponse,
+    VehicleCreate,
 )
 
 from services.driver_service.events import (
@@ -30,13 +31,20 @@ from services.driver_service.events import (
     event_ride_completed
 )
 
+from services.location_service.cache import (
+    save_driver_location,
+    delete_driver_location
+)
+
+from typing import Optional
+
 router = APIRouter(
     prefix="/driver",
     tags=["Driver"]
 )
 
 
-@router.post("/register", response_model = DriverRespone)
+@router.post("/register", response_model = DriverResponse)
 async def driver_register(driver_data: DriverCreate, session: sessionDep):
     result = await session.execute(
         select(Drivers).where(Drivers.insurance_policy_number == driver_data.insurance_policy_number)
@@ -63,41 +71,65 @@ async def driver_register(driver_data: DriverCreate, session: sessionDep):
 
     return driver
 
-@router.patch("{driver_id}/status", response_model=DriverRespone)
-async def driver_status(driver_id: int, data: DriverStatusUpdate, session: sessionDep):
-    driver = await session.get(Drivers, driver_id)
-
+@router.patch("/{driver_id}/status", response_model=DriverResponse)
+async def update_driver_status(
+    driver_id: int,
+    data: DriverStatusUpdate,
+    session: sessionDep
+):
+    driver: Optional[Drivers] = await session.get(Drivers, driver_id)
     if not driver:
-        raise HTTPException(
-            status_code=400,
-            detail="driver not found"
-        )
-    
+        raise HTTPException(status_code=404, detail="Driver not found")
+
     if driver.status == DriverStatus.ON_TRIP:
         raise HTTPException(
             status_code=400,
-            detail="driver on trip can not change status"
+            detail="Cannot change status while on a trip"
         )
-    
+
     if data.status == DriverStatus.ON_TRIP:
         raise HTTPException(
             status_code=400,
-            detail="Cannot manually set status to on_trip"
+            detail="Cannot manually set to on_trip"
         )
-    
-    old_status = driver.status
-    driver.status = data.status
 
+    # update status in DB
+    driver.status = data.status
     session.add(driver)
     await session.commit()
     await session.refresh(driver)
 
-    if old_status != driver.status:
-        if driver.id is not None:
-            event_driver_status_changed(
-                driver.id,
-                driver.status
+    if data.status == DriverStatus.ONLINE:
+        if data.latitude and data.longitude:
+            await save_driver_location(
+                driver_id=driver_id,
+                latitude=data.latitude,
+                longitude=data.longitude
             )
+            print(f"✅ Location saved for driver {driver_id}")
+
+            # verify it saved
+            import redis as sync_redis
+            r = sync_redis.Redis(
+                host="localhost",
+                port=6379,
+                decode_responses=True
+            )
+            saved = r.get(f"driver:location:{driver_id}")
+            print(f"✅ Redis verification: {saved}")
+
+        else:
+            print(f"⚠️ Driver {driver_id} online but no location provided")
+
+    elif data.status == DriverStatus.OFFLINE:
+        await delete_driver_location(driver_id)
+        print(f"🔴 Driver {driver_id} offline")
+
+    # fire event
+    event_driver_status_changed(
+        driver_id=driver_id,
+        status=data.status.value
+    )
 
     return driver
 
@@ -231,9 +263,16 @@ async def ride_start(
             start_time=str(ride.start_time)
         )
 
+    if ride.rider_id is None:
+        raise HTTPException(
+            status_code=400,
+            detail="rider id is missing in ride"
+        )
 
     return RideStartResponse(
         ride_id=ride_id,
+        driver_id=driver_id, 
+        rider_id=ride.rider_id,
         status=ride.status,
         start_time=ride.start_time,
         message="Ride started. Have a safe trip!"
@@ -315,6 +354,8 @@ async def ride_complete(
 
     return RideCompleteResponse(
         ride_id=ride_id,
+        driver_id=driver_id,
+        rider_id=ride.rider_id if ride.rider_id else 0,
         status=ride.status,
         start_time=ride.start_time,
         end_time=ride.end_time,
@@ -334,7 +375,7 @@ async def add_vehicle(
             detail="Driver not found"
         )
 
-    result = await session.exec(
+    result = await session.execute(
         select(Vehicle).where(
             Vehicle.license_plate == data.license_plate
         )

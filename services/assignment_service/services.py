@@ -21,12 +21,11 @@ from database.models import (
 from sqlmodel import select
 
 
-def find_nearest_driver(
+async def find_nearest_driver(
     pickup_lat: float,
     pickup_lng: float
 ) -> dict | None:
-    all_drivers = get_all_online_drivers()
-
+    all_drivers = await get_all_online_drivers()
     if not all_drivers or not isinstance(all_drivers, list):
         return None
 
@@ -35,14 +34,14 @@ def find_nearest_driver(
 
     for driver in all_drivers:
 
-        if is_locked(driver["driver_id"]): #type: ignore
+        if is_locked(driver["driver_id"]):
             continue
 
         distance = calculate_distance(
             lat1=pickup_lat,
             lng1=pickup_lng,
-            lat2=driver["latitude"], #type: ignore
-            lng2=driver["longitude"] #type: ignore
+            lat2=driver["latitude"],
+            lng2=driver["longitude"]
         )
 
         # only within 10km
@@ -109,7 +108,7 @@ async def process_assignment(
     session: sessionDep
 ) -> dict:
     # step 1 — find nearest driver
-    nearest = find_nearest_driver(pickup_lat, pickup_lng)
+    nearest = await find_nearest_driver(pickup_lat, pickup_lng)
 
     if not nearest:
         return {
@@ -139,7 +138,7 @@ async def process_assignment(
             }
 
         # step 4 — assign in database
-        success = assign_driver_to_ride(
+        success = await assign_driver_to_ride(
             ride_id=ride_id,
             driver_id=driver_id,
             vehicle_id=vehicle.id, #type: ignore

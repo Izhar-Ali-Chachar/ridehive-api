@@ -1,7 +1,7 @@
 import redis.asyncio as redis
 import json
 from datetime import datetime
-from database.session import get_session
+from database.session import async_session
 from services.payment_service.services import create_payment
 
 r = redis.Redis(
@@ -18,7 +18,7 @@ def publish_event(event_name: str, data: dict):
     print(f"Event fired: {event_name}")
 
 
-def handle_ride_completed(data: dict):
+async def handle_ride_completed(data: dict):
     
     ride_id = data["ride_id"]
     rider_id = data["rider_id"]
@@ -26,44 +26,43 @@ def handle_ride_completed(data: dict):
 
     print(f"Processing payment for ride {ride_id}...")
 
-    session = get_session()
+    async with async_session() as session:
+        try:
+            # call shared service logic
+            result = await create_payment(
+                ride_id=ride_id,
+                rider_id=rider_id,
+                session=session
+            )
 
-    try:
-        # call shared service logic
-        result = create_payment(
-            ride_id=ride_id,
-            rider_id=rider_id,
-            session=session
-        )
+            if result["success"]:
+                print(f"Payment created: {result['amount']} PKR")
 
-        if result["success"]:
-            print(f"Payment created: {result['amount']} PKR")
+                # fire payment completed event
+                publish_event("payment.completed", {
+                    "payment_id": result["payment_id"],
+                    "ride_id": ride_id,
+                    "rider_id": rider_id,
+                    "driver_id": driver_id,
+                    "amount": result["amount"],
+                    "payment_method": result["payment_method"]
+                })
 
-            # fire payment completed event
-            publish_event("payment.completed", {
-                "payment_id": result["payment_id"],
-                "ride_id": ride_id,
-                "rider_id": rider_id,
-                "driver_id": driver_id,
-                "amount": result["amount"],
-                "payment_method": result["payment_method"]
-            })
+            else:
+                print(f"Payment failed: {result['reason']}")
 
-        else:
-            print(f"Payment failed: {result['reason']}")
+                # fire payment failed event
+                publish_event("payment.failed", {
+                    "ride_id": ride_id,
+                    "rider_id": rider_id,
+                    "reason": result["reason"]
+                })
 
-            # fire payment failed event
-            publish_event("payment.failed", {
-                "ride_id": ride_id,
-                "rider_id": rider_id,
-                "reason": result["reason"]
-            })
+        except Exception as e:
+            print(f"Payment error: {e}")
 
-    except Exception as e:
-        print(f"Payment error: {e}")
-
-    finally:
-        session.close()
+        finally:
+            await session.close()
 
 
 async def start_payment_consumer():

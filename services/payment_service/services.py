@@ -25,7 +25,7 @@ async def get_payment_by_ride(
         ride_id: int,
         session
 ):
-    result = session.execute(
+    result = await session.execute(
         select(Payment).where(
             Payment.ride_id == ride_id
         )
@@ -38,7 +38,7 @@ async def create_payment(
         rider_id: int,
         session
 ):
-    ride = session.get(Rides, ride_id)
+    ride = await session.get(Rides, ride_id)
     if not ride:
         raise HTTPException(
             status_code=400,
@@ -58,18 +58,18 @@ async def create_payment(
             detail="Payment already exists for this ride"
         )
     
-    fare: Optional[Fares] = session.get(Fares, ride.fares_id)
+    fare: Optional[Fares] = await session.get(Fares, ride.fares_id)
     if not fare:
         raise HTTPException(
             status_code=400,
             detail="fare not found"
         )
     
-    rider: Optional[Riders] = session.get(Riders, rider_id)
+    rider: Optional[Riders] = await session.get(Riders, rider_id)
     if not rider:
         raise HTTPException (
             status_code=400,
-            detail="fare not found"
+            detail="rider not found"
         )
     
     total_amount = calculate_total_fare(fare)
@@ -83,8 +83,8 @@ async def create_payment(
     )
 
     session.add(payment)
-    session.commit()
-    session.refresh(payment)
+    await session.commit()
+    await session.refresh(payment)
 
     return {
         "success": True,

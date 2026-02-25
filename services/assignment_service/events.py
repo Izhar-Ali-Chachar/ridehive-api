@@ -11,10 +11,10 @@ r = redis.Redis(
 )
 
 
-def publish_event(event_name: str, data: dict):
+async def publish_event(event_name: str, data: dict):
     data["timestamp"] = datetime.now().isoformat()
 
-    r.publish(event_name, json.dumps(data))
+    await r.publish(event_name, json.dumps(data))
     print(f"Event fired: {event_name}")
 
 
@@ -39,7 +39,7 @@ async def handle_ride_requested(data: dict):
 
             if result["success"]:
                 # fire success event
-                publish_event("ride.assigned", {
+                await publish_event("ride.assigned", {
                     "ride_id": ride_id,
                     "rider_id": rider_id,
                     "driver_id": result["driver_id"],
@@ -48,7 +48,7 @@ async def handle_ride_requested(data: dict):
                 })
             else:
                 # fire failure event
-                publish_event("assignment.failed", {
+                await publish_event("assignment.failed", {
                     "ride_id": ride_id,
                     "rider_id": rider_id,
                     "reason": result["reason"]

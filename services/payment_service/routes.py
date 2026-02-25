@@ -26,11 +26,11 @@ router = APIRouter(
 )
 
 @router.post("/create", response_model=PaymentResponse)
-def manual_create_payment(
+async def manual_create_payment(
     data: PaymentCreate,
     session: sessionDep
 ):
-    result = create_payment(
+    result = await create_payment(
         ride_id = data.ride_id,
         rider_id = data.rider_id,
         session = session

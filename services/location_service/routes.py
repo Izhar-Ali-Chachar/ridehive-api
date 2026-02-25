@@ -23,7 +23,7 @@ router = APIRouter(prefix="/location", tags=["Location"])
 
 @router.post("/update")
 async def location_update(data: LocationUpdate):
-    save_driver_location(
+    await save_driver_location(
         data.driver_id,
         data.latitude,
         data.longitude
@@ -47,7 +47,7 @@ async def location_update(data: LocationUpdate):
 async def get_location(
     driver_id: int
 ):
-    location = get_driver_location(driver_id)
+    location = await get_driver_location(driver_id)
 
     if not location:
         raise HTTPException(
@@ -64,7 +64,7 @@ async def get_location(
 
 @router.post("/nearby", response_model=NearbyDriversResponse)
 async def get_nearby_drivers_endpoint(data: NearbyDriversRequest):
-    nearby = get_nearby_drivers(
+    nearby = await get_nearby_drivers(
         latitude=data.latitude,
         longitude=data.longitude,
         radius_km=data.radius_km
