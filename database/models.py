@@ -60,11 +60,11 @@ class Vehicle(SQLModel, table=True):
     model: str
     license_plate: str = Field(unique=True)
     make: str
-    year: int                          # fixed: str → int
+    year: int
     status: VehicleStatus = Field(default=VehicleStatus.ACTIVE)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    driver_id: int = Field(foreign_key="drivers.id")  # fixed lowercase
+    driver_id: Optional[int] = Field(default=None, foreign_key="drivers.id")
 
     driver: Drivers = Relationship(back_populates="vehicle")
     rides: list["Rides"] = Relationship(back_populates="vehicle")
@@ -89,10 +89,10 @@ class Rides(SQLModel, table=True):
     status: RidesStatus = Field(default=RidesStatus.REQUESTED)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    rider_id: int = Field(foreign_key="riders.id")
-    driver_id: int = Field(foreign_key="drivers.id")
-    fares_id: int = Field(foreign_key="fares.id")
-    vehicle_id: int = Field(foreign_key="vehicle.id")
+    rider_id: Optional[int] = Field(default=None, foreign_key="riders.id")
+    driver_id: Optional[int] = Field(default=None, foreign_key="drivers.id")
+    fares_id: Optional[int] = Field(default=None, foreign_key="fares.id")
+    vehicle_id: Optional[int] = Field(default=None, foreign_key="vehicle.id")
 
     rider: Riders = Relationship(back_populates="rides")
     driver: Drivers = Relationship(back_populates="rides")
@@ -108,8 +108,8 @@ class Payment(SQLModel, table=True):
     status: PaymentStatus = Field(default=PaymentStatus.PENDING)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    rider_id: int = Field(foreign_key="riders.id")
-    ride_id: int = Field(foreign_key="rides.id")
+    rider_id: Optional[int] = Field(default=None, foreign_key="riders.id")
+    ride_id: Optional[int] = Field(default=None, foreign_key="rides.id")
 
     rider: Riders = Relationship(back_populates="payment")
     ride: Rides = Relationship(back_populates="payment")

@@ -41,3 +41,11 @@ class RideCompleteResponse(BaseModel):
     end_time: datetime
     total_fare: float
     message: str
+
+class VehicleCreate(BaseModel):
+    """Driver adds a vehicle"""
+    driver_id: int
+    make: str
+    model: str
+    year: int
+    license_plate: str

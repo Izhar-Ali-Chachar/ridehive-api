@@ -171,6 +171,12 @@ async def ride_accept(
     await session.commit()
     await session.refresh(ride)
     
+    if not ride.rider_id:
+        raise HTTPException(
+            status_code=400,
+            detail="rider id is missing in ride"
+        )
+
     event_ride_accepted(
         ride_id=ride_id,
         driver_id=driver_id,
@@ -217,12 +223,13 @@ async def ride_start(
     await session.commit()
     await session.refresh(ride)
     
-    event_ride_started(
-        ride_id=ride_id,
-        driver_id=driver_id,
-        rider_id=ride.rider_id,
-        start_time=str(ride.start_time)
-    )
+    if ride.rider_id is not None:
+        event_ride_started(
+            ride_id=ride_id,
+            driver_id=driver_id,
+            rider_id=ride.rider_id,
+            start_time=str(ride.start_time)
+        )
 
 
     return RideStartResponse(
@@ -297,13 +304,14 @@ async def ride_complete(
     await session.commit()
     await session.refresh(ride)
 
-    event_ride_completed(
-        ride_id=ride_id,
-        driver_id=driver_id,
-        rider_id=ride.rider_id,
-        total_fare=round(total_fare, 2),
-        end_time=str(ride.end_time)
-    )
+    if ride.rider_id is not None:
+        event_ride_completed(
+            ride_id=ride_id,
+            driver_id=driver_id,
+            rider_id=ride.rider_id,
+            total_fare=round(total_fare, 2),
+            end_time=str(ride.end_time)
+        )
 
     return RideCompleteResponse(
         ride_id=ride_id,
@@ -313,3 +321,50 @@ async def ride_complete(
         total_fare=round(total_fare, 2),
         message="Ride completed. Payment is being processed."
     )
+
+@router.post("/vehicle/add")
+async def add_vehicle(
+    data: VehicleCreate,
+    session: sessionDep
+):
+    driver = await session.get(Drivers, data.driver_id)
+    if not driver:
+        raise HTTPException(
+            status_code=404,
+            detail="Driver not found"
+        )
+
+    result = await session.exec(
+        select(Vehicle).where(
+            Vehicle.license_plate == data.license_plate
+        )
+    )
+    existing = result.first()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="License plate already registered"
+        )
+
+    vehicle = Vehicle(
+        driver_id=data.driver_id,
+        make=data.make,
+        model=data.model,
+        year=data.year,
+        license_plate=data.license_plate,
+        status=VehicleStatus.ACTIVE
+    )
+
+    session.add(vehicle)
+    await session.commit()
+    await session.refresh(vehicle)
+
+    return {
+        "message": "Vehicle added successfully",
+        "vehicle_id": vehicle.id,
+        "driver_id": data.driver_id,
+        "make": vehicle.make,
+        "model": vehicle.model,
+        "license_plate": vehicle.license_plate
+    }

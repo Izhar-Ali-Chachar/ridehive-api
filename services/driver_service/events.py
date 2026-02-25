@@ -28,7 +28,7 @@ def event_driver_registered(driver_id: int):
     publish_event(
         "driver.registered",
         {
-            driver_id: driver_id
+            "driver_id": driver_id
         }
     )
 
@@ -36,8 +36,8 @@ def event_driver_status_changed(driver_id: int, status: str):
     publish_event(
         "driver.status_changed",
         {
-            driver_id: driver_id,
-            status: status
+            "driver_id": driver_id,
+            "status": status
         }
     )
 
@@ -49,9 +49,9 @@ def event_ride_accepted(
     publish_event(
         "ride.accepted",
         {
-            ride_id: ride_id,
-            driver_id: driver_id,
-            rider_id: rider_id
+            "ride_id": ride_id,
+            "driver_id": driver_id,
+            "rider_id": rider_id
         }
     )
 
@@ -64,10 +64,10 @@ def event_ride_started(
     publish_event(
         "ride.started",
         {
-            ride_id: ride_id,
-            driver_id: driver_id,
-            rider_id: rider_id,
-            start_time: start_time
+            "ride_id": ride_id,
+            "driver_id": driver_id,
+            "rider_id": rider_id,
+            "start_time": start_time
         }
     )
 
@@ -81,10 +81,10 @@ def event_ride_completed(
     publish_event(
         "ride.completed",
         {
-            ride_id: ride_id,
-            driver_id: driver_id,
-            rider_id: rider_id,
-            total_fare: total_fare,
-            end_time: end_time
+            "ride_id": ride_id,
+            "driver_id": driver_id,
+            "rider_id": rider_id,
+            "total_fare": total_fare,
+            "end_time": end_time
         }
     )

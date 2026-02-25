@@ -19,10 +19,7 @@ def publish_event(event_name: str, data: dict):
 
 
 def handle_ride_completed(data: dict):
-    """
-    Listens to ride.completed event
-    Automatically creates payment
-    """
+    
     ride_id = data["ride_id"]
     rider_id = data["rider_id"]
     driver_id = data["driver_id"]
@@ -32,7 +29,7 @@ def handle_ride_completed(data: dict):
     session = get_session()
 
     try:
-        # ✅ call shared service logic
+        # call shared service logic
         result = create_payment(
             ride_id=ride_id,
             rider_id=rider_id,
@@ -40,7 +37,7 @@ def handle_ride_completed(data: dict):
         )
 
         if result["success"]:
-            print(f"✅ Payment created: {result['amount']} PKR")
+            print(f"Payment created: {result['amount']} PKR")
 
             # fire payment completed event
             publish_event("payment.completed", {
@@ -53,7 +50,7 @@ def handle_ride_completed(data: dict):
             })
 
         else:
-            print(f"❌ Payment failed: {result['reason']}")
+            print(f"Payment failed: {result['reason']}")
 
             # fire payment failed event
             publish_event("payment.failed", {
@@ -63,16 +60,13 @@ def handle_ride_completed(data: dict):
             })
 
     except Exception as e:
-        print(f"❌ Payment error: {e}")
+        print(f"Payment error: {e}")
 
     finally:
         session.close()
 
 
 async def start_payment_consumer():
-    """
-    Listen to ride.completed events
-    """
     pubsub = r.pubsub()
     await pubsub.subscribe("ride.completed")
 

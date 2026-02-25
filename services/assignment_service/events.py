@@ -1,7 +1,7 @@
 import redis.asyncio as redis
 import json
 from datetime import datetime
-from database.session import get_session
+from database.session import async_session
 from services.assignment_service.services import process_assignment
 
 r = redis.Redis(
@@ -26,42 +26,39 @@ async def handle_ride_requested(data: dict):
 
     print(f"Assigning driver for ride {ride_id}...")
 
-    session = get_session()
+    
+    async with async_session() as session:
+        try:
+            result = await process_assignment(
+                ride_id=ride_id,
+                rider_id=rider_id,
+                pickup_lat=pickup_lat,
+                pickup_lng=pickup_lng,
+                session=session
+            )
 
-    try:
-        result = await process_assignment(
-            ride_id=ride_id,
-            rider_id=rider_id,
-            pickup_lat=pickup_lat,
-            pickup_lng=pickup_lng,
-            session=session
-        )
+            if result["success"]:
+                # fire success event
+                publish_event("ride.assigned", {
+                    "ride_id": ride_id,
+                    "rider_id": rider_id,
+                    "driver_id": result["driver_id"],
+                    "vehicle_id": result["vehicle_id"],
+                    "distance_km": result["distance_km"]
+                })
+            else:
+                # fire failure event
+                publish_event("assignment.failed", {
+                    "ride_id": ride_id,
+                    "rider_id": rider_id,
+                    "reason": result["reason"]
+                })
 
-        if result["success"]:
-            # fire success event
-            publish_event("ride.assigned", {
-                "ride_id": ride_id,
-                "rider_id": rider_id,
-                "driver_id": result["driver_id"],
-                "vehicle_id": result["vehicle_id"],
-                "distance_km": result["distance_km"]
-            })
-        else:
-            # fire failure event
-            publish_event("assignment.failed", {
-                "ride_id": ride_id,
-                "rider_id": rider_id,
-                "reason": result["reason"]
-            })
-
-    finally:
-        session.close()
+        finally:
+            await session.close()
 
 
 async def start_assignment_consumer():
-    """
-    Listen to ride.requested events
-    """
     pubsub = r.pubsub()
     await pubsub.subscribe("ride.requested")
 
