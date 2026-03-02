@@ -42,7 +42,7 @@ async def manual_create_payment(
             detail=result["reason"]
         )
 
-    payment: Optional[Payment] = session.get(
+    payment: Optional[Payment] = await session.get(
         Payment, result["payment_id"]
     )
 

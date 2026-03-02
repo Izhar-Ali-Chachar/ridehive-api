@@ -170,7 +170,7 @@ async def ride_request(
         dropoff_lng=ride_data.dropoff_lng
     )
 
-@router.get("/{ride_id}/status", response_model = RideRequestResponse)
+@router.get("/{ride_id}/status")
 async def get_ride_status(
     ride_id: int,
     session: sessionDep
