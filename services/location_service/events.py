@@ -1,5 +1,3 @@
-# services/location_service/events.py
-
 import redis
 import redis.asyncio as aioredis
 import json
@@ -12,9 +10,14 @@ from services.location_service.cache import (
 )
 
 
-_sync_r = redis.Redis(
-    host="localhost",
-    port=6379,
+import os
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+r = redis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     decode_responses=True
 )
 
@@ -26,7 +29,7 @@ def publish_event(
 
     data["timestamp"] = datetime.now().isoformat()
     payload = json.dumps(data)
-    _sync_r.publish(event_name, payload)
+    r.publish(event_name, payload)
     print(f"Event published: {event_name} → {data}")
 
 def event_location_updated(
@@ -46,9 +49,10 @@ def event_location_updated(
     )
 
 async def start_location_consumer() -> None:
+
     r = aioredis.Redis(
-        host="localhost",
-        port=6379,
+        host=REDIS_HOST,
+        port=REDIS_PORT,
         decode_responses=True
     )
 

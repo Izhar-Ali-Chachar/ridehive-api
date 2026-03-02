@@ -8,10 +8,14 @@ from services.notification_service.models import (
     NotificationChannel,
     RecipientType
 )
+import os
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
 r = redis.Redis(
-    host='localhost',
-    port=6379,
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     decode_responses=True
 )
 

@@ -1,15 +1,19 @@
-import redis.asyncio as redis
+import redis.asyncio as aioredis
 import json
 from datetime import datetime
 from database.session import async_session
 from services.assignment_service.services import process_assignment
 
-r = redis.Redis(
-    host='localhost',
-    port=6379,
+import os
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
+r = aioredis.Redis(
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     decode_responses=True
 )
-
 
 async def publish_event(event_name: str, data: dict):
     data["timestamp"] = datetime.now().isoformat()

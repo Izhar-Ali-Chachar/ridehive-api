@@ -4,11 +4,14 @@ import json
 from datetime import datetime
 from database.session import async_session
 from services.payment_service.services import create_payment
+import os
 
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
 _sync_r = redis.Redis(
-    host="localhost",
-    port=6379,
+    host=REDIS_HOST,
+    port=REDIS_PORT,
     decode_responses=True
 )
 
@@ -64,8 +67,8 @@ async def handle_ride_completed(data: dict) -> None:
 
 async def start_payment_consumer() -> None:
     r = aioredis.Redis(
-        host="localhost",
-        port=6379,
+        host=REDIS_HOST,
+        port=REDIS_PORT,
         decode_responses=True
     )
 

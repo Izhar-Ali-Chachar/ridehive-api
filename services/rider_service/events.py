@@ -3,10 +3,15 @@ import json
 
 from datetime import datetime
 
+import os
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+
 r = redis.Redis(
-    host = "localhost",
-    port = 6379,
-    decode_responses = True
+    host=REDIS_HOST,
+    port=REDIS_PORT,
+    decode_responses=True
 )
 
 def publish_event(event_name: str, data: dict):
