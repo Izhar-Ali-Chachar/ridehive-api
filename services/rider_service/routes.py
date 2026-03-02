@@ -170,7 +170,7 @@ async def ride_request(
         dropoff_lng=ride_data.dropoff_lng
     )
 
-@router.get("/{ride_id}/status")
+@router.get("/rides/{ride_id}/status")
 async def get_ride_status(
     ride_id: int,
     session: sessionDep
@@ -190,7 +190,7 @@ async def get_ride_status(
         "end_time": ride.end_time
     }
 
-@router.patch("/{ride_id}/cancel")
+@router.patch("/rides/{ride_id}/cancel")
 async def ride_cancel(
     session: sessionDep,
     ride_id: int,

@@ -7,7 +7,7 @@ from services.location_service.routes import router as location_router
 from services.assignment_service.routes import router as assignment_router
 from services.payment_service.routes import router as payment_router
 from services.notification_service.routes import router as notification_router
-from websockets.router import router as ws_router
+from websocket.router import router as ws_router
 
 
 @asynccontextmanager

@@ -134,7 +134,7 @@ async def update_driver_status(
     return driver
 
 
-@router.patch("rides/{ride_id}/accept", response_model=RideAcceptResponse)
+@router.patch("/rides/{ride_id}/accept", response_model=RideAcceptResponse)
 async def ride_accept(
     ride_id: int,
     driver_id: int,
@@ -223,7 +223,7 @@ async def ride_accept(
         rider_id=ride.rider_id
     )
 
-@router.patch("rides/{ride_id}/start", response_model=RideAcceptResponse)
+@router.patch("/rides/{ride_id}/start", response_model=RideAcceptResponse)
 async def ride_start(
     ride_id: int,
     driver_id: int,
@@ -278,7 +278,7 @@ async def ride_start(
         message="Ride started. Have a safe trip!"
     )
 
-@router.patch("rides/{ride_id}/complete", response_model=RideCompleteResponse)
+@router.patch("/rides/{ride_id}/complete", response_model=RideCompleteResponse)
 async def ride_complete(
     ride_id: int,
     driver_id: int,

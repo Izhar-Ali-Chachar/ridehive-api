@@ -1,7 +1,7 @@
 import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from websockets.rider_ws import rider_manager, listen_for_rider_events
-from websockets.driver_ws import driver_manager, listen_for_driver_events
+from websocket.rider_ws import rider_manager, listen_for_rider_events
+from websocket.driver_ws import driver_manager, listen_for_driver_events
 
 router = APIRouter(tags=["WebSockets"])
 
