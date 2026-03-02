@@ -7,15 +7,16 @@ from services.location_service.routes import router as location_router
 from services.assignment_service.routes import router as assignment_router
 from services.payment_service.routes import router as payment_router
 from services.notification_service.routes import router as notification_router
+from websockets.router import router as ws_router
 
 
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
-    print("🚀 Starting RideHive API...")
+    print("Starting RideHive API...")
     await create_tables()
-    print("✅ Database ready")
+    print("Database ready")
     yield
-    print("🛑 Shutting down...")
+    print("Shutting down...")
 
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app.include_router(location_router)
 app.include_router(assignment_router)
 app.include_router(payment_router)
 app.include_router(notification_router)
+app.include_router(ws_router)
 
 
 @app.get("/")
