@@ -85,7 +85,7 @@ async def get_assignment_status(
 
 @router.get("/available/count")
 async def get_available_count():
-    all_drivers = get_all_online_drivers()
+    all_drivers = await get_all_online_drivers()
     available = [
         d for d in all_drivers
         if not is_locked(d["driver_id"])

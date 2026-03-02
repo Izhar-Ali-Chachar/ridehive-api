@@ -129,7 +129,7 @@ async def process_refund(
     }
 
 async def get_all_payment_rider(rider_id: int, session):
-    result = session.exec(
+    result = await session.execute(
         select(Payment).where(
             Payment.rider_id == rider_id,
             Payment.status == PaymentStatus.COMPLETED

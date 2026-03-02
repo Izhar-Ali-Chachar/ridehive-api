@@ -109,11 +109,11 @@ def refund_payment(
     )
     
 @router.get("/rider/{rider_id}", response_model=PaymentSummary)
-def get_rider_payments(
+async def get_rider_payments(
     rider_id: int,
     session: sessionDep
 ):
-    payments = get_all_payment_rider(rider_id, session)
+    payments = await get_all_payment_rider(rider_id, session)
 
     total_spent = sum(p.amount for p in payments)
 

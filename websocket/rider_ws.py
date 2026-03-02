@@ -128,4 +128,3 @@ def format_rider_message(event: str, data: dict) -> dict | None:
         }
 
     return None
-
