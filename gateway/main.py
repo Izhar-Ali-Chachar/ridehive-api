@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database.session import create_tables
 from services.rider_service.routes import router as rider_router
@@ -22,6 +23,14 @@ async def lifespan_handler(app: FastAPI):
 app = FastAPI(
     title="RideHive API",
     lifespan=lifespan_handler
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(rider_router)
