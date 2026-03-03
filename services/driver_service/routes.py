@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
 from database.session import sessionDep
@@ -38,6 +38,8 @@ from services.location_service.cache import (
 
 from typing import Optional
 
+from core.auth import require_driver
+
 router = APIRouter(
     prefix="/driver",
     tags=["Driver"]
@@ -75,8 +77,15 @@ async def driver_register(driver_data: DriverCreate, session: sessionDep):
 async def update_driver_status(
     driver_id: int,
     data: DriverStatusUpdate,
-    session: sessionDep
+    session: sessionDep,
+    current_user: dict = Depends(require_driver)
 ):
+    if driver_id != current_user["sub"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Cannot update another driver's status"
+        )
+    
     driver: Optional[Drivers] = await session.get(Drivers, driver_id)
     if not driver:
         raise HTTPException(status_code=404, detail="Driver not found")
@@ -106,7 +115,7 @@ async def update_driver_status(
                 latitude=data.latitude,
                 longitude=data.longitude
             )
-            print(f"✅ Location saved for driver {driver_id}")
+            print(f"Location saved for driver {driver_id}")
 
             # verify it saved
             import redis as sync_redis
@@ -116,15 +125,14 @@ async def update_driver_status(
                 decode_responses=True
             )
             saved = r.get(f"driver:location:{driver_id}")
-            print(f"✅ Redis verification: {saved}")
+            print(f"Redis verification: {saved}")
 
         else:
-            print(f"⚠️ Driver {driver_id} online but no location provided")
+            print(f"Driver {driver_id} online but no location provided")
 
     elif data.status == DriverStatus.OFFLINE:
         await delete_driver_location(driver_id)
-        print(f"🔴 Driver {driver_id} offline")
-
+        print(f"Driver {driver_id} offline")
     # fire event
     event_driver_status_changed(
         driver_id=driver_id,

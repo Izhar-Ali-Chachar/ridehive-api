@@ -9,6 +9,7 @@ from services.assignment_service.routes import router as assignment_router
 from services.payment_service.routes import router as payment_router
 from services.notification_service.routes import router as notification_router
 from websocket.router import router as ws_router
+from services.auth_service.routes import router as auth_router
 
 
 @asynccontextmanager
@@ -33,6 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(rider_router)
 app.include_router(driver_router)
 app.include_router(location_router)
@@ -40,6 +42,7 @@ app.include_router(assignment_router)
 app.include_router(payment_router)
 app.include_router(notification_router)
 app.include_router(ws_router)
+
 
 
 @app.get("/")

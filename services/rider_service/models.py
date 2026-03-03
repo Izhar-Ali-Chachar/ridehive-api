@@ -15,7 +15,6 @@ class RiderUpdate(BaseModel):
     payment_method: Optional[RiderPaymentMethod] = Field(default=None)
 
 class RideRequest(BaseModel):
-    rider_id: int
     pickup_lat: float
     pickup_lng: float
     dropoff_lat: float

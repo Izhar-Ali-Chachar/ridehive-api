@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlmodel import select, or_
 
@@ -22,6 +22,8 @@ from database.models import (
     RidesStatus,
     Fares
 )
+
+from core.auth import require_rider
 
 router = APIRouter(prefix="/rider", tags=["Rider"])
 
@@ -82,9 +84,11 @@ async def update_rider(rider_id: int, rider_update: RiderUpdate, session: sessio
 @router.post("/ride/requested", response_model=RideRequestResponse)
 async def ride_request(
     ride_data: RideRequest,
-    session: sessionDep
+    session: sessionDep,
+    current_user: dict = Depends(require_rider)
 ):
-    rider = await session.get(Riders, ride_data.rider_id)
+    rider_id = current_user["sub"]
+    rider = await session.get(Riders, rider_id)
 
     if not rider:
         raise HTTPException(
@@ -94,7 +98,7 @@ async def ride_request(
     
     result = await session.execute(
         select(Rides).where(
-            Rides.rider_id == ride_data.rider_id,
+            Rides.rider_id == rider_id,
             or_(
                 Rides.status == RidesStatus.ACCEPTED,
                 Rides.status == RidesStatus.IN_PROGRESS
@@ -134,7 +138,7 @@ async def ride_request(
     await session.refresh(fare)
 
     ride = Rides(
-        rider_id = ride_data.rider_id,
+        rider_id = rider_id,
         fares_id = fare.id,
         status = RidesStatus.REQUESTED
     )
