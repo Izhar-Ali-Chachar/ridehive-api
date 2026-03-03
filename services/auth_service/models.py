@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 
+from database.models import RiderPaymentMethod
+
 class RiderRegister(BaseModel):
     phone: str
     password: str
-    payment_method: str = "cash"
+    payment_method: RiderPaymentMethod = RiderPaymentMethod.CASH
 
 
 class DriverRegister(BaseModel):

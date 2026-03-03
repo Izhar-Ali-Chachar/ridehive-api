@@ -120,8 +120,8 @@ async def driver_register(
 
 @router.post("/rider/login", response_model=TokenResponse)
 async def rider_login(
+    session: sessionDep,
     form: OAuth2PasswordRequestForm = Depends(),
-    session: sessionDep = Depends()
 ):
     result = await session.execute(
         select(Riders).where(Riders.phone == form.username)
@@ -152,8 +152,8 @@ async def rider_login(
 
 @router.post("/driver/login", response_model=TokenResponse)
 async def driver_login(
+    session: sessionDep,
     form: OAuth2PasswordRequestForm = Depends(),
-    session: sessionDep = Depends()
 ):
     result = await session.execute(
         select(Drivers).where(Drivers.phone == form.username)

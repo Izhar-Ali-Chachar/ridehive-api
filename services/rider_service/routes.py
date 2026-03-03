@@ -3,11 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select, or_
 
 from services.rider_service.models import (
-    RiderCreate,
     RiderResponse,
     RiderUpdate,
     RideRequestResponse,
-    RideRequest
+    RideRequest,
+    UpdatePaymentMethod,
 )
 from services.rider_service.events import (
     event_rider_registered,
@@ -24,31 +24,9 @@ from database.models import (
 )
 
 from core.auth import require_rider
+from typing import Annotated
 
 router = APIRouter(prefix="/rider", tags=["Rider"])
-
-@router.post("/register")
-async def register_rider(rider: RiderCreate, session: sessionDep):
-    db_rider = Riders(
-        **rider.model_dump()
-    )
-
-    session.add(db_rider)
-    await session.commit()
-    await session.refresh(db_rider)
-
-    if not db_rider.id:
-        raise HTTPException(
-            status_code=400,
-            detail="rider id not found"
-        )
-
-    event_rider_registered(
-        db_rider.id,
-        db_rider.payment_method.value
-    )
-
-    return db_rider
 
 @router.get("/{rider_id}", response_model=RiderResponse)
 async def get_rider(rider_id: int, session: sessionDep):
@@ -61,6 +39,46 @@ async def get_rider(rider_id: int, session: sessionDep):
         )
     
     return rider
+
+@router.get("/profile")
+async def get_profile(
+    session: sessionDep,
+    current_user: dict = Depends(require_rider)
+):
+    rider_id = int(current_user["sub"])
+    rider = await session.get(Riders, rider_id)
+
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider not found")
+
+    return {
+        "id": rider.id,
+        "phone": rider.phone,
+        "payment_method": rider.payment_method,
+        "created_at": rider.created_at
+    }
+
+@router.patch("/payment-method")
+async def update_payment_method(
+    data: UpdatePaymentMethod,
+    session: sessionDep,
+    current_user: dict = Depends(require_rider)
+):
+    rider_id = int(current_user["sub"])
+    rider = await session.get(Riders, rider_id)
+
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider not found")
+
+    rider.payment_method = data.payment_method
+    session.add(rider)
+    await session.commit()
+    await session.refresh(rider)
+
+    return {
+        "message": "Payment method updated",
+        "payment_method": rider.payment_method
+    }
 
 @router.patch("/{rider_id}", response_model=RiderResponse)
 async def update_rider(rider_id: int, rider_update: RiderUpdate, session: sessionDep):
@@ -85,7 +103,7 @@ async def update_rider(rider_id: int, rider_update: RiderUpdate, session: sessio
 async def ride_request(
     ride_data: RideRequest,
     session: sessionDep,
-    current_user: dict = Depends(require_rider)
+    current_user: Annotated[dict, Depends(require_rider)]
 ):
     rider_id = current_user["sub"]
     rider = await session.get(Riders, rider_id)
@@ -177,7 +195,8 @@ async def ride_request(
 @router.get("/rides/{ride_id}/status")
 async def get_ride_status(
     ride_id: int,
-    session: sessionDep
+    session: sessionDep,
+    _: Annotated[dict, Depends(require_rider)]
 ):
     ride = await session.get(Rides, ride_id)
     if not ride:
@@ -199,6 +218,7 @@ async def ride_cancel(
     session: sessionDep,
     ride_id: int,
     rider_id: int,
+    _: Annotated[dict, Depends(require_rider)],
     reason: str = "No reason provided"
 ):
     ride = await session.get(Rides, ride_id)
@@ -254,7 +274,8 @@ async def ride_cancel(
 @router.get("/{rider_id}/rides")
 async def get_rider_rides(
     rider_id: int,
-    session: sessionDep
+    session: sessionDep,
+    _: Annotated[dict, Depends(require_rider)]
 ):
     rider = await session.get(Riders, rider_id)
     if not rider:

@@ -36,7 +36,7 @@ from services.location_service.cache import (
     delete_driver_location
 )
 
-from typing import Optional
+from typing import Optional, Annotated
 
 from core.auth import require_driver
 
@@ -46,39 +46,12 @@ router = APIRouter(
 )
 
 
-@router.post("/register", response_model = DriverResponse)
-async def driver_register(driver_data: DriverCreate, session: sessionDep):
-    result = await session.execute(
-        select(Drivers).where(Drivers.insurance_policy_number == driver_data.insurance_policy_number)
-    )
-
-    existing_driver = result.scalar_one_or_none()
-
-    if existing_driver:
-        raise HTTPException(
-            status_code=400,
-            detail="driver already exist"
-        )
-
-    driver = Drivers(
-        **driver_data.model_dump()
-    )
-
-    session.add(driver)
-    await session.commit()
-    await session.refresh(driver)
-
-    if driver.id is not None:
-        event_driver_registered(driver_id=driver.id)
-
-    return driver
-
 @router.patch("/{driver_id}/status", response_model=DriverResponse)
 async def update_driver_status(
     driver_id: int,
     data: DriverStatusUpdate,
     session: sessionDep,
-    current_user: dict = Depends(require_driver)
+    current_user: Annotated[dict, Depends(require_driver)]
 ):
     if driver_id != current_user["sub"]:
         raise HTTPException(
@@ -146,7 +119,8 @@ async def update_driver_status(
 async def ride_accept(
     ride_id: int,
     driver_id: int,
-    session: sessionDep
+    session: sessionDep,
+    current_user: Annotated[dict, Depends(require_driver)]
 ):
     ride = await session.get(Rides, ride_id)
     if not ride:
@@ -235,7 +209,8 @@ async def ride_accept(
 async def ride_start(
     ride_id: int,
     driver_id: int,
-    session: sessionDep
+    session: sessionDep,
+    current_user: Annotated[dict, Depends(require_driver)]
 ):
     ride = await session.get(Rides, ride_id)
     if not ride:
@@ -292,7 +267,8 @@ async def ride_complete(
     driver_id: int,
     actual_distance: float,
     actual_duration: int,
-    session: sessionDep
+    session: sessionDep,
+    current_user: Annotated[dict, Depends(require_driver)]
 ):
     ride = await session.get(Rides, ride_id)
     if not ride:
@@ -374,7 +350,8 @@ async def ride_complete(
 @router.post("/vehicle/add")
 async def add_vehicle(
     data: VehicleCreate,
-    session: sessionDep
+    session: sessionDep,
+    current_user: Annotated[dict, Depends(require_driver)]
 ):
     driver = await session.get(Drivers, data.driver_id)
     if not driver:

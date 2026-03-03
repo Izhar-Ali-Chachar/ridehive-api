@@ -35,3 +35,11 @@ class RideRequestResponse(BaseModel):
     pickup_lng: float
     dropoff_lat: float
     dropoff_lng: float
+
+class UpdatePaymentMethod(BaseModel):
+    payment_method: RiderPaymentMethod
+
+
+class PaymentMethodResponse(BaseModel):
+    message: str
+    payment_method: RiderPaymentMethod
