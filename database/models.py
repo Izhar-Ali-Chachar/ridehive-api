@@ -38,6 +38,8 @@ class PaymentStatus(str, Enum):
 
 class Riders(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    phone: str = Field(unique=True)
+    password_hash: str 
     payment_method: RiderPaymentMethod = Field(default=RiderPaymentMethod.CASH)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -47,6 +49,8 @@ class Riders(SQLModel, table=True):
 
 class Drivers(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    phone: str = Field(unique=True)
+    password_hash: str 
     insurance_policy_number: str = Field(unique=True)
     status: DriverStatus = Field(default=DriverStatus.OFFLINE)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
