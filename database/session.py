@@ -1,14 +1,24 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlmodel import SQLModel
 from database.models import Riders, Rides, Payment, Drivers, Fares
+import os
 
 from fastapi import Depends
 from typing import Annotated
 
-url = "sqlite+aiosqlite:///./ridehive.db"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite+aiosqlite:///./ridehive.db"
+)
+
+if DATABASE_URL.startswith("sqlite:///"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "sqlite:///",
+        "sqlite+aiosqlite:///"
+    )
 
 engine = create_async_engine(
-    url=url,
+    url=DATABASE_URL,
     echo=True
 )
 

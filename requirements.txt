@@ -7,7 +7,7 @@ redis
 redis[asyncio]
 websockets
 pydantic
-pydantic-settings
+pydantic-settings==2.6.0
 python-dotenv
 psycopg2-binary
 pyjwt

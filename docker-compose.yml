@@ -1,11 +1,12 @@
+# docker-compose.yml
+
 version: '3.8'
 
 services:
+
   redis:
     image: redis:7-alpine
     container_name: ridehive_redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -14,7 +15,6 @@ services:
       timeout: 3s
       retries: 5
     restart: unless-stopped
-
 
   app:
     build:
@@ -29,10 +29,10 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      DATABASE_URL: sqlite:///./ridehive.db
+      DATABASE_URL: sqlite:////app/data/ridehive.db  # ✅ new path
     volumes:
       - .:/app
-      - db_data:/app/ridehive.db
+      - db_data:/app/data                            # ✅ mount directory not file
     command: uvicorn gateway.main:app --host 0.0.0.0 --port 8000 --reload
     restart: unless-stopped
 
@@ -47,13 +47,14 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      DATABASE_URL: sqlite:///./ridehive.db
+      DATABASE_URL: sqlite:////app/data/ridehive.db  # ✅ same path
     volumes:
       - .:/app
-      - db_data:/app/ridehive.db
+      - db_data:/app/data                            # ✅ same directory
     command: python worker.py
     restart: unless-stopped
-    
+
+
 volumes:
   redis_data:
   db_data:
