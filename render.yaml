@@ -59,3 +59,4 @@ services:
     name: ridehive-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []   # ✅ allow all — required by Render
