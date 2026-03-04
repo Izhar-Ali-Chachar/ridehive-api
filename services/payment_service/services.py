@@ -137,3 +137,13 @@ async def get_all_payment_rider(rider_id: int, session):
     )
 
     return result.scalars().all()
+
+async def get_all_payment_driver(driver_id: int, session):
+    result = await session.execute(
+        select(Payment).join(Rides).where(
+            Rides.driver_id == driver_id,
+            Payment.status == PaymentStatus.COMPLETED
+        )
+    )
+
+    return result.scalars().all()

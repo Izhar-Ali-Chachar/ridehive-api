@@ -60,7 +60,7 @@ async def listen_for_driver_events(driver_id: int):
         event = message["channel"]
         data = json.loads(message["data"])
 
-        if data.get("driver_id") != driver_id:
+        if int(data.get("driver_id")) != int(driver_id):
             continue
 
         payload = format_driver_message(event, data)

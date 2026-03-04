@@ -53,7 +53,12 @@ async def update_driver_status(
     session: sessionDep,
     current_user: Annotated[dict, Depends(require_driver)]
 ):
-    if driver_id != current_user["sub"]:
+    print(f"📍 Status update received:")
+    print(f"   status: {data.status}")
+    print(f"   latitude: {data.latitude}")
+    print(f"   longitude: {data.longitude}")
+    
+    if driver_id != int(current_user["sub"]):
         raise HTTPException(
             status_code=403,
             detail="Cannot update another driver's status"

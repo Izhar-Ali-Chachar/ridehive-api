@@ -6,14 +6,16 @@ from services.payment_service.models import (
     PaymentResponse,
     RefundRequest,
     RefundResponse,
-    PaymentSummary
+    RiderPaymentSummary,
+    DriverPaymentSummary,
 )
 
 from services.payment_service.services import (
     create_payment,
     get_payment_by_ride,
     process_refund,
-    get_all_payment_rider
+    get_all_payment_rider,
+    get_all_payment_driver
 )
 
 from database.session import sessionDep
@@ -108,7 +110,7 @@ def refund_payment(
         message=f"Refund processed. Reason: {result['reason']}"
     )
     
-@router.get("/rider/{rider_id}", response_model=PaymentSummary)
+@router.get("/rider/{rider_id}", response_model=RiderPaymentSummary)
 async def get_rider_payments(
     rider_id: int,
     session: sessionDep
@@ -117,9 +119,25 @@ async def get_rider_payments(
 
     total_spent = sum(p.amount for p in payments)
 
-    return PaymentSummary(
+    return RiderPaymentSummary(
         rider_id=rider_id,
         total_rides=len(payments),
         total_spent=round(total_spent, 2),
+        payments=payments
+    )
+
+@router.get("/driver/{driver_id}", response_model=DriverPaymentSummary)
+async def get_driver_payments(
+    driver_id: int,
+    session: sessionDep
+):
+    payments = await get_all_payment_driver(driver_id, session)
+
+    total_earned = sum(p.amount for p in payments)
+
+    return DriverPaymentSummary(
+        driver_id=driver_id,
+        total_rides=len(payments),
+        total_earned=round(total_earned, 2),
         payments=payments
     )

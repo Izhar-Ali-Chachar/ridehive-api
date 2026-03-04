@@ -1,0 +1,61 @@
+services:
+  # ── FastAPI App ──
+  - type: web
+    name: ridehive-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn gateway.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: REDIS_HOST
+        fromService:
+          name: ridehive-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: ridehive-redis
+          type: redis
+          property: port
+      - key: DATABASE_URL
+        value: sqlite:////var/data/ridehive.db
+    disk:
+      name: ridehive-db
+      mountPath: /var/data
+      sizeGB: 1
+
+  # ── Worker ──
+  - type: worker
+    name: ridehive-worker
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python worker.py
+    envVars:
+      - key: SECRET_KEY
+        fromService:
+          name: ridehive-api
+          type: web
+          envVarKey: SECRET_KEY
+      - key: REDIS_HOST
+        fromService:
+          name: ridehive-redis
+          type: redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          name: ridehive-redis
+          type: redis
+          property: port
+      - key: DATABASE_URL
+        value: sqlite:////var/data/ridehive.db
+    disk:
+      name: ridehive-worker-db
+      mountPath: /var/data
+      sizeGB: 1
+
+  # ── Redis ──
+  - type: redis
+    name: ridehive-redis
+    plan: free
+    maxmemoryPolicy: noeviction

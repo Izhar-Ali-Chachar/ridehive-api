@@ -46,9 +46,15 @@ class RefundResponse(SQLModel):
     message: str
 
 
-class PaymentSummary(SQLModel):
+class RiderPaymentSummary(SQLModel):
     """Summary for a rider"""
     rider_id: int
     total_rides: int
     total_spent: float
+    payments: list[PaymentResponse]
+
+class DriverPaymentSummary(SQLModel):
+    driver_id: int
+    total_rides: int
+    total_earned: float
     payments: list[PaymentResponse]

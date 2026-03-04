@@ -7,7 +7,7 @@ from services.rider_service.models import (
     RiderUpdate,
     RideRequestResponse,
     RideRequest,
-    UpdatePaymentMethod,
+    UpdatePaymentMethod
 )
 from services.rider_service.events import (
     event_rider_registered,
@@ -20,9 +20,9 @@ from database.models import (
     Riders,
     Rides,
     RidesStatus,
-    Fares
+    Fares,
+    RiderPaymentMethod
 )
-
 from core.auth import require_rider
 from typing import Annotated
 
@@ -70,7 +70,7 @@ async def update_payment_method(
     if not rider:
         raise HTTPException(status_code=404, detail="Rider not found")
 
-    rider.payment_method = data.payment_method
+    rider.payment_method = RiderPaymentMethod(data.payment_method)
     session.add(rider)
     await session.commit()
     await session.refresh(rider)
@@ -99,13 +99,13 @@ async def update_rider(rider_id: int, rider_update: RiderUpdate, session: sessio
 
     return rider
 
-@router.post("/ride/requested", response_model=RideRequestResponse)
+@router.post("/rides/request", response_model=RideRequestResponse)
 async def ride_request(
     ride_data: RideRequest,
     session: sessionDep,
     current_user: Annotated[dict, Depends(require_rider)]
 ):
-    rider_id = current_user["sub"]
+    rider_id = int(current_user["sub"])
     rider = await session.get(Riders, rider_id)
 
     if not rider:

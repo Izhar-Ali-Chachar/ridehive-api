@@ -12,7 +12,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme_driver = OAuth2PasswordBearer(tokenUrl="/auth/driver/login")
+oauth2_scheme_rider = OAuth2PasswordBearer(tokenUrl="/auth/rider/login")
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -52,14 +53,19 @@ def decode_token(token: str) -> dict:
             headers={"WWW-Authenticate": "Bearer"}
         )
     
-async def get_current_user(
-    token: str = Depends(oauth2_scheme)
+async def get_current_driver(
+    token: str = Depends(oauth2_scheme_driver)
+) -> dict:
+    return decode_token(token)
+
+async def get_current_rider(
+    token: str = Depends(oauth2_scheme_rider)
 ) -> dict:
     return decode_token(token)
 
 
 async def require_rider(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_rider)
 ) -> dict:
     if current_user.get("role") != "rider":
         raise HTTPException(
@@ -70,7 +76,7 @@ async def require_rider(
 
 
 async def require_driver(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_driver)
 ) -> dict:
     if current_user.get("role") != "driver":
         raise HTTPException(
@@ -78,3 +84,8 @@ async def require_driver(
             detail="Drivers only"
         )
     return current_user
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme_rider)
+) -> dict:
+    return decode_token(token)

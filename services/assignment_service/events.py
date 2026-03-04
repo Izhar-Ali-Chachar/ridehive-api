@@ -27,6 +27,9 @@ async def handle_ride_requested(data: dict):
     rider_id = data["rider_id"]
     pickup_lat = data["pickup_lat"]
     pickup_lng = data["pickup_lng"]
+    dropoff_lat    = data.get("dropoff_lat")
+    dropoff_lng    = data.get("dropoff_lng")
+    estimated_fare = data.get("estimated_fare")
 
     print(f"Assigning driver for ride {ride_id}...")
 
@@ -48,7 +51,12 @@ async def handle_ride_requested(data: dict):
                     "rider_id": rider_id,
                     "driver_id": result["driver_id"],
                     "vehicle_id": result["vehicle_id"],
-                    "distance_km": result["distance_km"]
+                    "distance_km": result["distance_km"],
+                    "pickup_lat": pickup_lat,
+                    "pickup_lng": pickup_lng,
+                    "dropoff_lat": dropoff_lat,
+                    "dropoff_lng": dropoff_lng,
+                    "estimated_fare": estimated_fare
                 })
             else:
                 # fire failure event
